@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 
-import json, requests, urllib
+import argparse, json, requests, urllib
 
-# Estimate the time i will arrive at work using the ruter API
-# ruterDate=$(echo ${leftDate}${leftTime} | sed 's/://g;s/-//g')
-# estimatedArrival=$(curl -i -s -N -X GET http://reisapi.ruter.no/Travel/GetTravels\?fromPlace\=3011036\&toPlace\=3010445\&isAfter\=true\&time\=${ruterDate}
+parser = argparse.ArgumentParser()
+parser.add_argument("origin")
+parser.add_argument("destination")
+args = parser.parse_args()
 
-response = requests.get("http://reisapi.ruter.no/Travel/GetTravels?fromPlace=3011036&toPlace=3010445&isAfter=true")
+origin = args.origin # "Marmorveien 9 (Oslo)"
 
-print("GET request status code: " + repr(response.status_code) + "\n")
-
-jsonData = json.loads(response.content)
-
-origin = "Marmorveien 9 (Oslo)"
-
-apiGetPlaceString = "http://reisapi.ruter.no/Place/GetPlaces/?id=" + urllib.parse.quote_plus(origin)
+apiGetPlaceString = "https://reisapi.ruter.no/Place/GetPlaces/?id=" + urllib.parse.quote_plus(origin)
 
 print("Using api string: " + apiGetPlaceString)
 
@@ -22,23 +17,62 @@ response = requests.get(apiGetPlaceString)
 
 print("GET request status code: " + repr(response.status_code) + "\n")
 
-jsonDataStops = json.loads(response.content)
+jsonDataStopsOrigin = json.loads(response.content)
 
 #print(jsonDataStops)
 #print("Stops:")
-print("\t" + "Name: " + jsonDataStops[0]["Name"])
-print("\t" + "Plate type: " + jsonDataStops[0]["PlaceType"])
-#for stop in jsonDataStops:
-#    if(stop["District"] == "Oslo" and stop["PlaceType"] == "Stop"):
+
+originID = 0
+destinationID = 0
+
+for stop in jsonDataStopsOrigin:
+    if stop["District"] == "Oslo" and stop["PlaceType"] == "Street":
+        originID = stop["ID"]
+        break
 #        print("\t" + "Name: " + stop["Name"])
 #        print("\t" + "Plate type: " + stop["PlaceType"])
 
-print("Showing results from " + " to ")
+destination = args.destination # "Sandakerveien 24D (Oslo)"
 
-for proposal in jsonData["TravelProposals"]:
-    print("\n")
-    print("Travel Time: " + proposal["TotalTravelTime"])
-    print("Departure Time: " + proposal["DepartureTime"])
-    print("Arrival Time: " + proposal["ArrivalTime"] + "\n")
-    print("------------------------------------------------")
-    
+apiGetPlaceString = "https://reisapi.ruter.no/Place/GetPlaces/?id=" + urllib.parse.quote_plus(destination)
+
+response = requests.get(apiGetPlaceString)
+
+
+print("GET request status code: " + repr(response.status_code) + "\n")
+
+jsonDataStopsDestination = json.loads(response.content)
+
+for stop in jsonDataStopsDestination:
+    if stop["District"] == "Oslo" and stop["PlaceType"] == "Street":
+        destinationID = stop["ID"]
+        break
+#        print("\t" + "Name: " + stop["Name"])
+#        print("\t" + "Plate type: " + stop["PlaceType"])
+
+apiRequest = "https://reisapi.ruter.no/Travel/GetTravels?fromPlace=" + repr(originID) + "&toPlace=" + repr(destinationID) + "&isafter=true"
+
+#apiRequest = "https://reisapi.ruter.no/Travel/GetTravels?fromPlace=" + repr(originID) + "&toPlace=" + repr(destinationID) + "&isafter=true&time=14062018070000&proposals=5"
+response = requests.get(apiRequest)
+
+print("Sending api request:" + apiRequest)
+
+print("GET request status code: " + repr(response.status_code) + "\n")
+
+if not response.content:
+    print("Could not suggest any routes")
+    exit()
+else:
+    print(response.content)
+
+jsonData = json.loads(response.content)
+
+print("showing results from " + origin + " to " + destination)
+
+for proposal in jsonData:
+    print(proposal)
+    #print("\n")
+    #print("Travel Time: " + proposal["TotalTravelTime"])
+    #print("Departure Time: " + proposal["DepartureTime"])
+    #print("Arrival Time: " + proposal["ArrivalTime"] + "\n")
+    #print("------------------------------------------------")
