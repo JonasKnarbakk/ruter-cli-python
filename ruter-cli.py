@@ -30,8 +30,24 @@ def remove_punctuation(string):
 def format_time(string):
     return datetime.strptime(string, "%Y-%m-%dT%H:%M:%S+02:00").strftime("%H:%M:%S")
 
-for place in get_place_suggestions(args.origin):
-    print(place)
+
+originStop = None
+destinationStop = None
+
+originStop = get_stop_suggestions(args.origin)[0]
+destinationStop = get_stop_suggestions(args.destination)[0]
+
+print(originStop)
+print(destinationStop)
+
+for travel in get_travel_suggestions(originStop.ID, destinationStop.ID, "true"):
+    print("Departure: " + format_time(travel.departureTime))
+    print("Arrival: " + format_time(travel.arrivalTime))
+    print("Total Travel Time: " + travel.totalTravelTime + "\n")
+    for stage in travel.stages:
+        print("\tTransportation: " + transportMethods[stage.transportation])
+        print("\tDeparture: " + format_time(stage.departureTime))
+        print("\tArrival: " + format_time(stage.arrivalTime))
 
 #  latitude, longitude = get_lat_lon()
 
