@@ -1,5 +1,5 @@
 test:
   script:
   - apt-get update -qy
-  - apt-get install -y python-dev python-pip
-  - python ruter-cli.py "Marmorvien 9" "Sandakerveien 24D"
+  - apt-get install -y python-dev python-pip python3
+  - python3 ruter-cli.py "Marmorvien 9" "Sandakerveien 24D"
