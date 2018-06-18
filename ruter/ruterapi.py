@@ -117,7 +117,7 @@ def get_place_suggestions(place):
                             + urllib.parse.quote_plus(place))
     if response.status_code == 200 and response.content:
         places = []
-        for place in json.loads(response.content):
+        for place in response.json():
             if place["PlaceType"] == "Stop":
                 places.append(Stop(place))
             elif place["PlaceType"] == "Area":
@@ -134,7 +134,7 @@ def get_stop_suggestions(place):
                             + urllib.parse.quote_plus(place))
     if response.status_code == 200 and response.content:
         places = []
-        for place in json.loads(response.content):
+        for place in response.json():
             if place["PlaceType"] == "Stop":
                 places.append(Stop(place))
 
@@ -151,10 +151,10 @@ def get_travel_suggestions(origin, destination, isAfter):
             + "&isafter=" + isAfter)
 
     if response.status_code == 200 and response.content:
-        travelSuggestions = json.loads(response.content)
+        travelSuggestions = response.json()
         if not travelSuggestions["ReisError"]:
             travels = []
-            for travel in json.loads(response.content)["TravelProposals"]:
+            for travel in response.json()["TravelProposals"]:
                 travels.append(TravelProposal(travel))
             return travels
         else:

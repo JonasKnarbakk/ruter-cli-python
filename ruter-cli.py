@@ -22,7 +22,7 @@ transportMethods = {    0 : "🚶",
 
 def get_lat_lon():
     response = requests.get("https://freegeoip.net/json")
-    jsonData = json.loads(response.content)
+    jsonData = response.json()
     return jsonData["latitude"], jsonData["longitude"]
 
 def remove_punctuation(string):
