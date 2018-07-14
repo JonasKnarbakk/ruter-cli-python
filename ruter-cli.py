@@ -31,15 +31,14 @@ def remove_punctuation(string):
 def format_time(string):
     return datetime.strptime(string, "%Y-%m-%dT%H:%M:%S+02:00").strftime("%H:%M:%S")
 
-
 originStop = None
 destinationStop = None
 
 originStop = get_stop_suggestions(args.origin)[0]
 destinationStop = get_stop_suggestions(args.destination)[0]
 
-print(originStop)
-print(destinationStop)
+print("Origin: " + str(originStop))
+print("Destination: " + str(destinationStop))
 
 for travel in get_travel_suggestions(originStop.ID, destinationStop.ID, "true"):
     print("Departure: " + format_time(travel.departureTime))

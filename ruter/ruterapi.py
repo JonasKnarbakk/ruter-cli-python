@@ -111,8 +111,6 @@ class TravelProposal():
                         len(self.stages))
 
 def get_place_suggestions(place):
-    print("https://reisapi.ruter.no/Place/GetPlaces/?id="
-                            + urllib.parse.quote_plus(place))
     response = requests.get("https://reisapi.ruter.no/Place/GetPlaces/?id="
                             + urllib.parse.quote_plus(place))
     if response.status_code == 200 and response.content:
@@ -144,7 +142,6 @@ def get_stop_suggestions(place):
         return []
 
 def get_travel_suggestions(origin, destination, isAfter):
-    print("https://reisapi.ruter.no/Travel/GetTravels?" + "fromPlace=" + urllib.parse.quote_plus(str(origin)) + "&toPlace=" + urllib.parse.quote_plus(str(destination)) + "&isafter=" + isAfter)
     response = requests.get("https://reisapi.ruter.no/Travel/GetTravels?" \
             + "fromPlace=" + urllib.parse.quote_plus(str(origin)) \
             + "&toPlace=" + urllib.parse.quote_plus(str(destination)) \
