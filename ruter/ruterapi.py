@@ -1,9 +1,26 @@
 import json, requests, urllib
+from datetime import datetime
+
+transportMethods = {    0 : "🚶",
+                        1 : "",
+                        2 : "🚌",
+                        3 : "",
+                        4 : "",
+                        5 : "",
+                        6 : "🚆",
+                        7 : "🚊",
+                        8 : "🚇" }
+
+def format_time(string):
+    return datetime.strptime(string, "%Y-%m-%dT%H:%M:%S+02:00").strftime("\033[33m%H:%M:%S\033[0m")
 
 class Point():
     def __init__(self, json):
         self.x = json["X"]
         self.y = json["Y"]
+
+    def __str__(self):
+        return "{},{}".format(self.x, self.y)
 
 class Line():
     def __init__(self, json):
@@ -11,10 +28,6 @@ class Line():
         self.lineColor = json["LineColour"]
         self.name = json["Name"]
         self.transportation = json["Transportation"]
-
-    def __repr(self):
-        return "Name: {}, Transportation: {}".format(
-                self.name, self.transportation)
 
     def __str__(self):
         return "ID: {}, Name: {}, Transportation: {}".format(
@@ -79,6 +92,13 @@ class WalkingStage(Stage):
         self.arrivalPoint = Point(json["ArrivalPoint"])
         self.departurePoint = Point(json["DeparturePoint"])
 
+    def __str__(self):
+        return "[{}] {} {} [{}] {}".format(format_time(self.departureTime),
+                                    self.departurePoint,
+                                    transportMethods[self.transportation],
+                                    format_time(self.arrivalTime),
+                                    self.arrivalPoint)
+
 class TravelStage(Stage):
     def __init__(self, json):
         super(TravelStage, self).__init__(json)
@@ -97,11 +117,18 @@ class TravelStage(Stage):
         self.tourID = json["TourID"]
         self.tourLineID = json["TourLineID"]
 
+    def __str__(self):
+        return "[{}] {} {} [{}] {}".format(format_time(self.departureTime),
+                                    self.departureStop.name,
+                                    transportMethods[self.transportation],
+                                    format_time(self.arrivalTime),
+                                    self.arrivalStop.name)
+
 class TravelProposal():
     def __init__(self, json):
         self.arrivalTime = json["ArrivalTime"]
         self.departureTime = json["DepartureTime"]
-        self.stages = [Stage(i) for i in json ["Stages"]]
+        self.stages = get_stages_from_json(json["Stages"])
         self.totalTravelTime = json["TotalTravelTime"]
         self.zones = json["Zones"]
 
@@ -109,6 +136,16 @@ class TravelProposal():
         return "Departure: {}, Total Travel: {}, Arrival: {}, Stages: {}, ".format(
                 self.departureTime, self.totalTravelTime, self.arrivalTime, \
                         len(self.stages))
+
+def get_stages_from_json(json):
+    stages = []
+    for stage in json:
+        if "ArrivalPoint" in stage:
+            stages.append(WalkingStage(stage))
+        elif "ArrivalStop" in stage:
+            stages.append(TravelStage(stage))
+
+    return stages
 
 def get_place_suggestions(place):
     response = requests.get("https://reisapi.ruter.no/Place/GetPlaces/?id="
@@ -142,6 +179,10 @@ def get_stop_suggestions(place):
         return []
 
 def get_travel_suggestions(origin, destination, isAfter):
+    #  print("https://reisapi.ruter.no/Travel/GetTravels?" \
+            #  + "fromPlace=" + urllib.parse.quote_plus(str(origin)) \
+            #  + "&toPlace=" + urllib.parse.quote_plus(str(destination)) \
+            #  + "&isafter=" + isAfter)
     response = requests.get("https://reisapi.ruter.no/Travel/GetTravels?" \
             + "fromPlace=" + urllib.parse.quote_plus(str(origin)) \
             + "&toPlace=" + urllib.parse.quote_plus(str(destination)) \

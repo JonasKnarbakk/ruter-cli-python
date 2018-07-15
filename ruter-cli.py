@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse, string, json, requests, urllib
-from datetime import datetime
 from ruter.ruterapi import *
 
 parser = argparse.ArgumentParser()
@@ -10,15 +9,6 @@ parser.add_argument("origin")
 parser.add_argument("destination")
 args = parser.parse_args()
 
-transportMethods = {    0 : "🚶",
-                        1 : "",
-                        2 : "🚌",
-                        3 : "",
-                        4 : "",
-                        5 : "",
-                        6 : "🚆",
-                        7 : "🚊",
-                        8 : "🚇" }
 
 def get_lat_lon():
     response = requests.get("https://freegeoip.net/json")
@@ -28,26 +18,31 @@ def get_lat_lon():
 def remove_punctuation(string):
     return string.translate({ord(c): None for c in "."})
 
-def format_time(string):
-    return datetime.strptime(string, "%Y-%m-%dT%H:%M:%S+02:00").strftime("%H:%M:%S")
 
-originStop = None
-destinationStop = None
+def main():
+    originStop = None
+    destinationStop = None
 
-originStop = get_stop_suggestions(args.origin)[0]
-destinationStop = get_stop_suggestions(args.destination)[0]
+    originStop = get_stop_suggestions(args.origin)[0]
+    destinationStop = get_stop_suggestions(args.destination)[0]
 
-print("Origin: " + str(originStop))
-print("Destination: " + str(destinationStop))
+    print("Origin: " + str(originStop))
+    print("Destination: " + str(destinationStop) + "\n")
 
-for travel in get_travel_suggestions(originStop.ID, destinationStop.ID, "true"):
-    print("Departure: " + format_time(travel.departureTime))
-    print("Arrival: " + format_time(travel.arrivalTime))
-    print("Total Travel Time: " + travel.totalTravelTime + "\n")
-    for stage in travel.stages:
-        print("\tTransportation: " + transportMethods[stage.transportation])
-        print("\tDeparture: " + format_time(stage.departureTime))
-        print("\tArrival: " + format_time(stage.arrivalTime))
+    suggestion = 1
+
+    for travel in get_travel_suggestions(originStop.ID, destinationStop.ID, "true"):
+        print(str(suggestion) + ". [" + format_time(travel.departureTime) + "] "
+        + originStop.name + " -> [" + format_time(travel.arrivalTime) + "] "
+        + destinationStop.name + ", Total travel time: [\033[33m"
+        + travel.totalTravelTime + "\033[0m]")
+        for stage in travel.stages:
+            print("\t" + str(stage))
+        print()
+        suggestion += 1
+
+if __name__ == "__main__":
+    main()
 
 #  latitude, longitude = get_lat_lon()
 
